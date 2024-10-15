@@ -1,9 +1,21 @@
 inherit_from: .rubocop_todo.yml
 
-Style/AlignParameters:
+AllCops:
+  TargetRubyVersion: 3.0
+  DisplayCopNames: true
+  SuggestExtensions: false
+  NewCops: enable
+
+Layout/ParameterAlignment:
   Enabled: false
 
-Style/MultilineOperationIndentation:
+Layout/MultilineOperationIndentation:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 130
+
+Style/NumericPredicate:
   Enabled: false
 
 Style/SignalException:
@@ -12,5 +24,18 @@ Style/SignalException:
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 
-Style/TrailingCommaInLiteral:
+Style/TrailingCommaInArrayLiteral:
   Enabled: false
+
+Style/TrailingCommaInHashLiteral:
+  Enabled: false
+
+Style/ZeroLengthPredicate:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Exclude:
+    - Gemfile
+    - Rakefile
+    - activerecord-postgis-adapter.gemspec
+    - gemfiles/*

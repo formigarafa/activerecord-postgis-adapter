@@ -1,3 +1,102 @@
+### 9.0.2 / 2024-04-39
+
+* Add `ConnectionHandling` module (copiousfreetime) #390
+
+### 9.0.1 / 2023-1016
+
+* Add `identity` attribute to `SpatialColumn`. (joseramonc) #385
+
+### 9.0.0 / 2023-10-06
+
+* Rails 7.1 support (seuros) #382
+
+### 8.0.3 / 2023-10-05
+
+* Fix `default_function` schema dumping in virtual columns (wizardofelves) #383
+
+### 8.0.2 / 2023-05-16
+
+* Fix for geometries in generated columns (Tristramg) #377
+* Add `date_time` type configuration to adapter #363
+
+### 8.0.1 / 2022-08-01
+
+* Support for generated columns and other adapter fixes (ddiachkov) #360
+
+### 8.0.0 / 2022-01-03
+
+* Breaking Change: Remove `PostgisDatabaseTasks` (seuros) #352
+* ActiveRecord 7 support (seuros) #352
+
+### 7.1.1 / 2021-08-17
+
+* Modify `truncate_tables` to ignore spatial_ref_sys #341, #345
+* Fix Default Values #347
+
+### 7.1.0 / 2021-03-28
+
+* Support Attributes #334
+* Access `configuration_hash` using symbols #335
+* Support JRuby #330
+
+### 7.0.1 / 2021-01-13
+
+* Fix db:gis:setup task #329
+
+### 7.0.0 / 2020-12-22
+
+* Add ActiveRecord 6.1 Compatability (tagliala) #324
+* Change SpatialFactoryStore attribute parsing #325
+* Update Arel Module #325
+
+### 6.0.2 / 2020-03-28
+
+* Support JRuby #331
+
+### 6.0.1 / 2020-08-16
+
+* Fix SchemaStatements#initialize_type_map #309
+* Add support for Ruby 2.7 #306
+* Adapt gem to ActiveRecord 6.0. #315
+
+### 6.0.0 / 2019-08-21
+
+* Support ActiveRecord 6.0 #303
+
+### 5.2.3 / 2021-03-28
+
+* Support JRuby #332
+
+### 5.2.2 / 2018-12-02
+
+* Freeze strings
+
+### 5.2.1 / 2018-03-05
+
+* Fix type parsing for Z/M variants with no SRID #281, #282
+* Test ActiveRecord 5.2 with pg gem version 1.0.0 #279
+
+### 5.2.0 / 2017-12-24
+
+* Support comments - #275
+
+---
+* Note: rgeo 2.0 is supported with version 5.1.0+
+* The rgeo gem version requirement is specified by rgeo-activerecord
+---
+
+### 5.1.0 / 2017-12-02
+
+* Require rgeo-activerecord 6.0, require rgeo 1.0. #272
+
+### 5.0.3 / 2017-11-09
+
+* Improve requires, fix warnings #268
+* Improve readme #264
+* Fix Travis #261
+* Remove comment #260
+* Fix regex for parsing spacial column types #259
+
 ### 5.0.2 / 2017-06-14
 
 * Use PG::Connection instead of PGconn #257
@@ -9,6 +108,25 @@
 ### 5.0.0 / 2017-05-01 *** YANKED
 
 * Support ActiveRecord 5.1 - #246
+
+### 4.1.2 / 2018-03-05
+
+* Fix type parsing for Z/M variants with no SRID #283
+
+### 4.1.1 / 2017-12-24
+
+* Support comments - backport #275
+
+### 4.1.0 / 2017-12-02
+
+* Require rgeo-activerecord 6.0, require rgeo 1.0.
+
+### 4.0.5 / 2017-11-09
+
+* Backport fixes from master #270
+* Fix circular require warning
+* Improve requires
+* Fix regex for parsing spacial column types #259
 
 ### 4.0.4 / 2017-06-14
 

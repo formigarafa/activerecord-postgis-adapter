@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord  # :nodoc:
   module ConnectionAdapters  # :nodoc:
     module PostGIS  # :nodoc:
@@ -5,22 +7,26 @@ module ActiveRecord  # :nodoc:
         include ColumnMethods
 
         # super: https://github.com/rails/rails/blob/master/activerecord/lib/active_record/connection_adapters/abstract/schema_definitions.rb
-        def new_column_definition(name, type, options)
-          if (info = PostGISAdapter.spatial_column_options(type.to_sym))
-            if (limit = options.delete(:limit))
-              options.merge!(limit) if limit.is_a?(::Hash)
+        def new_column_definition(name, type, **options)
+          col_type = if type.to_sym == :virtual
+            options[:type]
+          else
+            type
+          end
+
+          if (info = PostGISAdapter.spatial_column_options(col_type))
+            if (limit = options.delete(:limit)) && limit.is_a?(::Hash)
+              options.merge!(limit)
             end
 
             geo_type = ColumnDefinitionUtils.geo_type(options[:type] || type || info[:type])
             base_type = info[:type] || (options[:geographic] ? :geography : :geometry)
 
-            # puts name.dup << " - " << type.to_s << " - " << options.to_s << " :: " << geo_type.to_s << " - " << base_type.to_s
-
             options[:limit] = ColumnDefinitionUtils.limit_from_options(geo_type, options)
             options[:spatial_type] = geo_type
-            column = super(name, base_type, options)
+            column = super(name, base_type, **options)
           else
-            column = super(name, type, options)
+            column = super(name, type, **options)
           end
 
           column
@@ -37,11 +43,11 @@ module ActiveRecord  # :nodoc:
           end
 
           def limit_from_options(type, options = {})
-            spatial_type = geo_type(type)
-            spatial_type << "Z" if options[:has_z]
-            spatial_type << "M" if options[:has_m]
-            spatial_type << ",#{options[:srid] || default_srid(options)}"
-            spatial_type
+            has_z = options[:has_z] ? 'Z' : ''
+            has_m = options[:has_m] ? 'M' : ''
+            srid = options[:srid] || default_srid(options)
+            field_type = [geo_type(type), has_z, has_m].compact.join
+            "#{field_type},#{srid}"
           end
 
           def default_srid(options)

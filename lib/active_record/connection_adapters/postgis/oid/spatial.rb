@@ -1,17 +1,20 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostGIS
       module OID
+        # OID used to represent geometry/geography database types and attributes.
+        #
+        # Accepts `geo_type`, `srid`, `has_z`, `has_m`, and `geographic` as parameters.
+        # Responsible for parsing sql_types returned from the database and WKT features.
         class Spatial < Type::Value
-          # sql_type is a string that comes from the database definition
-          # examples:
-          #   "geometry(Point,4326)"
-          #   "geography(Point,4326)"
-          #   "geometry(Polygon,4326) NOT NULL"
-          #   "geometry(Geography,4326)"
-          def initialize(oid, sql_type)
-            @sql_type = sql_type
-            @geo_type, @srid, @has_z, @has_m = self.class.parse_sql_type(sql_type)
+          def initialize(geo_type: "geometry", srid: 0, has_z: false, has_m: false, geographic: false)
+            @geo_type = geo_type
+            @srid = srid
+            @has_z = has_z
+            @has_m = has_m
+            @geographic = geographic
           end
 
           # sql_type: geometry, geometry(Point), geometry(Point,4326), ...
@@ -22,44 +25,50 @@ module ActiveRecord
           #   has_z:    false
           #   has_m:    false
           def self.parse_sql_type(sql_type)
-            geo_type, srid, has_z, has_m = nil, 0, false, false
+            geo_type = nil
+            srid = 0
+            has_z = false
+            has_m = false
 
             if sql_type =~ /(geography|geometry)\((.*)\)$/i
+              # geometry(Point)
               # geometry(Point,4326)
               params = Regexp.last_match(2).split(",")
-              if params.size > 1
-                if params.first =~ /([a-z]+[^zm])(z?)(m?)/i
-                  has_z = Regexp.last_match(2).length > 0
-                  has_m = Regexp.last_match(3).length > 0
-                  geo_type = Regexp.last_match(1)
-                end
-                if params.last =~ /(\d+)/
-                  srid = Regexp.last_match(1).to_i
-                end
-              else
-                # geometry(Point)
-                geo_type = params[0]
+              if params.first =~ /([a-z]+[^zm])(z?)(m?)/i
+                has_z = Regexp.last_match(2).length > 0
+                has_m = Regexp.last_match(3).length > 0
+                geo_type = Regexp.last_match(1)
+              end
+              if params.last =~ /(\d+)/
+                srid = Regexp.last_match(1).to_i
               end
             else
               # geometry
+              # otherType(a,b)
               geo_type = sql_type
             end
-            [geo_type, srid, has_z, has_m]
+            geographic = sql_type.match?(/geography/)
+
+            [geo_type, srid, has_z, has_m, geographic]
           end
 
           def spatial_factory
-            @spatial_factory ||=
+            return @spatial_factory if defined?(@spatial_factory)
+            @spatial_factory =
               RGeo::ActiveRecord::SpatialFactoryStore.instance.factory(
-                geo_type: @geo_type,
-                has_m:    @has_m,
-                has_z:    @has_z,
-                sql_type: @sql_type,
-                srid:     @srid
+                factory_attrs
               )
-          end
 
-          def geographic?
-            @sql_type =~ /geography/
+            if @srid != @spatial_factory.srid
+              puts
+              puts "INITIALIZATION ERROR"
+              puts
+            end
+
+            # Tracer is waaay too noisy
+            # require "tracer"
+            # Tracer.trace(@spatial_factory)
+            @spatial_factory
           end
 
           def spatial?
@@ -67,13 +76,25 @@ module ActiveRecord
           end
 
           def type
-            geographic? ? :geography : :geometry
+            @geographic ? :geography : :geometry
           end
 
           # support setting an RGeo object or a WKT string
           def serialize(value)
             return if value.nil?
             geo_value = cast_value(value)
+            if spatial_factory.srid != @srid
+            	$something_wrong = true
+              puts ?* * 100
+              puts "@geo_type: #{@geo_type}"
+              puts "type.to_s: #{type.to_s}"
+              puts "@srid:     #{@srid}"
+              p spatial_factory # It has srid=0 when bugged
+              p value
+              p geo_value
+              puts
+              puts
+            end
 
             # TODO - only valid types should be allowed
             # e.g. linestring is not valid for point column
@@ -107,6 +128,16 @@ module ActiveRecord
             else
               RGeo::WKRep::WKTParser.new(spatial_factory, support_ewkt: true, default_srid: @srid)
             end
+          end
+
+          def factory_attrs
+            {
+              geo_type: @geo_type.underscore,
+              has_m: @has_m,
+              has_z: @has_z,
+              srid: @srid,
+              sql_type: type.to_s
+            }
           end
         end
       end
